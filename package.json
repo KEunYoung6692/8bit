@@ -1,0 +1,20 @@
+{
+  "name": "hacker-tale",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node ./node_modules/vite/bin/vite.js --host 0.0.0.0",
+    "build": "node ./node_modules/vite/bin/vite.js build",
+    "preview": "node ./node_modules/vite/bin/vite.js preview --host 0.0.0.0"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.104.1"
+  },
+  "devDependencies": {
+    "vite": "^8.0.10"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

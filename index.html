@@ -1,0 +1,2342 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <title>HACKER-TALE</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --black: #000;
+      --surface: #131313;
+      --surface-low: #1b1b1b;
+      --surface-mid: #242424;
+      --surface-high: #303030;
+      --white: #fff;
+      --ink: #e8e8e8;
+      --muted: #8e9192;
+      --dim: #55585a;
+      --accent: #ffada8;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+      background: var(--black);
+      color: var(--white);
+      font-family: "Space Grotesk", system-ui, sans-serif;
+      letter-spacing: 0;
+    }
+
+    body {
+      min-height: 100dvh;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: geometricPrecision;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+      color: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    ::selection {
+      background: var(--white);
+      color: var(--black);
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    .material-symbols-outlined {
+      font-family: "Material Symbols Outlined";
+      font-weight: normal;
+      font-style: normal;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: normal;
+      text-transform: none;
+      display: inline-block;
+      white-space: nowrap;
+      word-wrap: normal;
+      direction: ltr;
+      -webkit-font-feature-settings: "liga";
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .scanlines,
+    .panel-scan {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.055) 0,
+          rgba(255, 255, 255, 0.055) 1px,
+          transparent 1px,
+          transparent 4px
+        );
+      mix-blend-mode: screen;
+      opacity: 0.28;
+      z-index: 80;
+    }
+
+    .panel-scan {
+      position: absolute;
+      z-index: 0;
+      mix-blend-mode: normal;
+      opacity: 0.22;
+    }
+
+    .app {
+      width: 100%;
+      min-height: 100dvh;
+      background: var(--black);
+    }
+
+    .screen {
+      display: none;
+      width: min(100%, 430px);
+      min-height: 100dvh;
+      margin: 0 auto;
+      background: var(--black);
+      position: relative;
+    }
+
+    .screen.is-active {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      height: 72px;
+      padding: 0 20px;
+      border-bottom: 2px solid var(--white);
+      background: var(--black);
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 12px;
+      text-transform: uppercase;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .topbar__left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .topbar__left .material-symbols-outlined {
+      font-size: 22px;
+    }
+
+    .topbar__level {
+      text-align: center;
+      font-size: clamp(18px, 5.8vw, 26px);
+      line-height: 1;
+      white-space: nowrap;
+      text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.22);
+    }
+
+    .topbar__hp {
+      justify-self: end;
+      white-space: nowrap;
+      font-size: clamp(12px, 3.6vw, 15px);
+    }
+
+    .start-screen {
+      padding: 28px;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .start-card {
+      width: 100%;
+      min-height: calc(100dvh - 128px);
+      max-height: 820px;
+      border: 2px solid var(--white);
+      background: var(--surface);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(36px, 7dvh, 72px);
+      overflow: hidden;
+    }
+
+    .start-card::before,
+    .start-card::after {
+      content: "";
+      position: absolute;
+      left: 28px;
+      right: 28px;
+      height: 26px;
+      border-left: 2px solid var(--white);
+      border-right: 2px solid var(--white);
+      background: var(--surface);
+      z-index: 2;
+    }
+
+    .start-card::before {
+      top: -2px;
+      border-bottom: 2px solid var(--white);
+    }
+
+    .start-card::after {
+      bottom: -2px;
+      border-top: 2px solid var(--white);
+    }
+
+    .corner {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      background: var(--white);
+      z-index: 3;
+    }
+
+    .corner.tl { top: -2px; left: -2px; }
+    .corner.tr { top: -2px; right: -2px; }
+    .corner.bl { bottom: -2px; left: -2px; }
+    .corner.br { bottom: -2px; right: -2px; }
+
+    .start-stack {
+      position: relative;
+      z-index: 4;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 66px;
+      padding: 28px;
+    }
+
+    .heart-icon {
+      color: var(--accent);
+      font-size: 80px;
+      font-variation-settings: "FILL" 1;
+      filter: drop-shadow(2px 2px 0 #000);
+    }
+
+    .brand-title {
+      margin: 0;
+      max-width: 300px;
+      text-align: center;
+      font-size: clamp(39px, 10.4vw, 48px);
+      line-height: 1.14;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      text-shadow: 4px 4px 0 rgba(255, 255, 255, 0.18);
+      overflow-wrap: anywhere;
+    }
+
+    .brand-title span {
+      display: block;
+    }
+
+    .btn,
+    .nav-btn,
+    .cmd-btn {
+      border: 2px solid var(--white);
+      border-radius: 0;
+      background: var(--black);
+      color: var(--white);
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      transition: background 80ms linear, color 80ms linear, border-color 80ms linear, transform 80ms linear;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn:hover,
+    .btn:focus-visible,
+    .cmd-btn:hover,
+    .cmd-btn:focus-visible {
+      background: var(--white);
+      color: var(--black);
+      outline: none;
+    }
+
+    .start-btn {
+      min-width: min(100%, 260px);
+      min-height: 64px;
+      padding: 0 24px;
+      font-size: 15px;
+    }
+
+    .view-main {
+      flex: 1;
+      padding: 38px 28px 36px;
+    }
+
+    .view-main.with-nav {
+      padding-bottom: calc(112px + var(--safe-bottom));
+    }
+
+    .init-panel,
+    .profile-card,
+    .dialogue-card {
+      position: relative;
+      width: 100%;
+      border: 2px solid var(--muted);
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .init-panel {
+      padding: 34px 28px 28px;
+    }
+
+    .pixel-corner {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: var(--white);
+      z-index: 2;
+    }
+
+    .pixel-corner.tl { top: -2px; left: -2px; }
+    .pixel-corner.tr { top: -2px; right: -2px; }
+    .pixel-corner.bl { bottom: -2px; left: -2px; }
+    .pixel-corner.br { bottom: -2px; right: -2px; }
+
+    .panel-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .init-heading {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 8px;
+      font-size: clamp(24px, 6.6vw, 32px);
+      line-height: 1;
+      font-weight: 700;
+      text-transform: uppercase;
+      text-shadow: 3px 3px 0 rgba(255, 255, 255, 0.22);
+      white-space: nowrap;
+      overflow-wrap: anywhere;
+    }
+
+    .init-heading .material-symbols-outlined {
+      font-size: 30px;
+      flex: 0 0 auto;
+    }
+
+    .sys-line {
+      margin: 0;
+      color: #c7ccd5;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .rule {
+      height: 2px;
+      margin: 22px 0 34px;
+      background: var(--muted);
+      border: 0;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 38px;
+    }
+
+    .label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #c8ceda;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .label .material-symbols-outlined {
+      font-size: 17px;
+    }
+
+    .terminal-input,
+    .terminal-textarea {
+      width: 100%;
+      border: 1px solid var(--muted);
+      border-radius: 0;
+      background: linear-gradient(180deg, var(--surface-high), var(--surface-low));
+      color: var(--white);
+      outline: 0;
+      box-shadow: none;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .terminal-input {
+      min-height: 55px;
+      padding: 12px 10px;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .terminal-textarea {
+      min-height: 130px;
+      resize: vertical;
+      padding: 12px 10px;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+
+    .terminal-input::placeholder,
+    .terminal-textarea::placeholder {
+      color: rgba(142, 145, 146, 0.52);
+    }
+
+    .terminal-input:focus,
+    .terminal-textarea:focus {
+      border-color: var(--white);
+    }
+
+    .class-grid {
+      display: grid;
+      gap: 9px;
+    }
+
+    .class-option {
+      position: relative;
+      display: block;
+    }
+
+    .class-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .class-card {
+      min-height: 134px;
+      padding: 20px;
+      border: 1px solid var(--muted);
+      background: linear-gradient(180deg, var(--surface-high), var(--surface-low));
+      color: var(--ink);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 18px;
+      transition: background 80ms linear, color 80ms linear, border-color 80ms linear;
+    }
+
+    .class-option input:checked + .class-card {
+      border-color: var(--white);
+      background: var(--white);
+      color: var(--black);
+    }
+
+    .class-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      color: inherit;
+      opacity: 0.88;
+    }
+
+    .class-name {
+      display: block;
+      margin: 0 0 9px;
+      font-size: 25px;
+      line-height: 1;
+      font-weight: 700;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .class-option input:checked + .class-card .class-name {
+      text-shadow: none;
+    }
+
+    .class-desc {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.45;
+      color: inherit;
+      opacity: 0.9;
+    }
+
+    .char-count {
+      margin-top: 12px;
+      text-align: right;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .submit-wrap {
+      border-top: 1px solid var(--muted);
+      padding-top: 28px;
+    }
+
+    .submit-btn {
+      width: 100%;
+      min-height: 98px;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 22px;
+      text-align: left;
+      font-size: 27px;
+      line-height: 1.25;
+    }
+
+    .submit-btn .material-symbols-outlined {
+      font-size: 36px;
+    }
+
+    .window-titlebar {
+      min-height: 33px;
+      border-bottom: 1px solid var(--muted);
+      background: var(--surface-high);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 12px;
+      color: #b9b9b9;
+      text-transform: uppercase;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+    }
+
+    .window-controls {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .window-controls span {
+      width: 10px;
+      height: 10px;
+      display: block;
+      background: var(--muted);
+    }
+
+    .window-controls span:last-child {
+      background: transparent;
+      border: 1px solid var(--muted);
+    }
+
+    .profile-card {
+      border-color: var(--white);
+    }
+
+    .profile-content {
+      position: relative;
+      z-index: 1;
+      padding: 32px 32px 36px;
+    }
+
+    .portrait {
+      position: relative;
+      width: 136px;
+      max-width: 78%;
+      aspect-ratio: 1;
+      border: 4px solid var(--white);
+      background: #111;
+      overflow: hidden;
+    }
+
+    .portrait img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(1) contrast(1.28);
+    }
+
+    .portrait-fallback {
+      position: absolute;
+      inset: 0;
+      display: none;
+      background:
+        radial-gradient(circle at 50% 32%, #f2f2f2 0 10%, #888 11% 19%, transparent 20%),
+        linear-gradient(90deg, transparent 0 22%, #eee 23% 29%, #222 30% 70%, #eee 71% 77%, transparent 78%),
+        linear-gradient(180deg, transparent 0 48%, #eee 49% 55%, #111 56% 70%, #ddd 71% 100%);
+      filter: grayscale(1);
+    }
+
+    .portrait img.is-hidden + .portrait-fallback {
+      display: block;
+    }
+
+    .level-badge {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      background: var(--white);
+      color: var(--black);
+      padding: 1px 6px 2px;
+      border-left: 2px solid var(--black);
+      border-top: 2px solid var(--black);
+      font-size: 15px;
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .profile-name {
+      margin: 30px 0 0;
+      color: var(--ink);
+      font-size: clamp(33px, 8.8vw, 42px);
+      line-height: 0.95;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      text-shadow:
+        4px 4px 0 rgba(255, 255, 255, 0.22),
+        0 0 0 var(--white);
+      overflow-wrap: anywhere;
+    }
+
+    .profile-role {
+      margin: 18px 0 28px;
+      color: #8d8f91;
+      font-size: clamp(24px, 7.1vw, 32px);
+      line-height: 1.05;
+      font-weight: 700;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.14);
+      overflow-wrap: anywhere;
+    }
+
+    .status-box {
+      border: 1px solid var(--muted);
+      padding: 14px;
+      color: var(--white);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+
+    .intent-box {
+      margin-top: 14px;
+      border: 1px solid var(--dim);
+      padding: 12px;
+      color: #c4c7c8;
+      font-size: 13px;
+      line-height: 1.45;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      overflow-wrap: anywhere;
+    }
+
+    .stats {
+      display: grid;
+      gap: 8px;
+      margin-top: 28px;
+      padding: 9px;
+      border: 1px solid var(--muted);
+      background: var(--black);
+    }
+
+    .stat-row {
+      min-height: 54px;
+      padding: 10px 12px;
+      border: 1px solid var(--muted);
+      background: var(--surface-low);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      text-transform: uppercase;
+    }
+
+    .stat-label {
+      color: #8d8f91;
+      font-size: clamp(12px, 3.7vw, 16px);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+    }
+
+    .stat-value {
+      color: var(--white);
+      font-size: clamp(21px, 7vw, 28px);
+      font-weight: 700;
+      text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.18);
+      white-space: nowrap;
+    }
+
+    .talk-cta {
+      width: 100%;
+      min-height: 70px;
+      margin-top: 36px;
+      background: var(--white);
+      color: var(--black);
+      border-color: var(--white);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      font-size: clamp(20px, 6.6vw, 30px);
+      line-height: 1;
+      box-shadow: inset 0 0 0 999px rgba(0, 0, 0, 0);
+      background-image: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.08) 0, rgba(0, 0, 0, 0.08) 2px, transparent 2px, transparent 5px);
+    }
+
+    .talk-cta:hover,
+    .talk-cta:focus-visible {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    .talk-cta .material-symbols-outlined {
+      font-size: 34px;
+      font-variation-settings: "FILL" 1;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      left: 50%;
+      bottom: 0;
+      z-index: 40;
+      width: min(100%, 430px);
+      transform: translateX(-50%);
+      min-height: calc(96px + var(--safe-bottom));
+      padding: 14px 24px calc(14px + var(--safe-bottom));
+      border-top: 2px solid var(--white);
+      background: var(--black);
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+
+    .nav-btn {
+      min-height: 70px;
+      border-color: transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 13px;
+      letter-spacing: 0;
+    }
+
+    .nav-btn .material-symbols-outlined {
+      font-size: 32px;
+    }
+
+    .nav-btn.is-active,
+    .nav-btn:hover,
+    .nav-btn:focus-visible {
+      background: var(--white);
+      color: var(--black);
+      border-color: var(--black);
+      outline: none;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: calc(110px + var(--safe-bottom));
+      z-index: 70;
+      width: min(calc(100% - 48px), 360px);
+      transform: translate(-50%, 16px);
+      opacity: 0;
+      pointer-events: none;
+      border: 2px solid var(--white);
+      background: var(--black);
+      color: var(--white);
+      padding: 13px 14px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: opacity 120ms linear, transform 120ms linear;
+    }
+
+    .toast.is-visible {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    .chat-main {
+      flex: 1;
+      padding: 36px 28px calc(190px + var(--safe-bottom));
+      overflow: auto;
+    }
+
+    .connection {
+      width: 100%;
+      margin: 0 auto 44px;
+      border: 2px solid var(--muted);
+      padding: 7px 10px;
+      color: #8c8f91;
+      text-align: center;
+      font-size: 17px;
+      line-height: 1.1;
+      font-weight: 700;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      overflow-wrap: anywhere;
+    }
+
+    .chat-row {
+      display: grid;
+      grid-template-columns: 78px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+
+    .chat-avatar {
+      width: 78px;
+      aspect-ratio: 1;
+      border: 4px solid var(--white);
+      background: var(--surface);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .chat-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(1) contrast(1.5);
+      display: block;
+    }
+
+    .chat-avatar::after {
+      content: "";
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 15px;
+      height: 15px;
+      background: var(--white);
+    }
+
+    .chat-stack {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 23px;
+    }
+
+    .message-box {
+      position: relative;
+      min-height: 156px;
+      border: 2px solid var(--muted);
+      background: linear-gradient(180deg, var(--surface-low), #101010);
+      padding: 22px;
+      color: var(--white);
+      font-size: clamp(18px, 5.4vw, 23px);
+      line-height: 1.48;
+      text-shadow: 2px 2px 0 rgba(255, 255, 255, 0.13);
+    }
+
+    .message-box p {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .message-box p::after {
+      content: "_";
+      animation: blink 1s steps(2, start) infinite;
+    }
+
+    .cmd-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .cmd-btn {
+      min-height: 56px;
+      padding: 12px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      font-size: clamp(14px, 4.4vw, 18px);
+      line-height: 1.15;
+    }
+
+    .cmd-btn.is-muted {
+      border-color: var(--muted);
+      color: var(--muted);
+    }
+
+    .profile-link {
+      margin-top: 2px;
+      align-self: flex-start;
+      min-height: 44px;
+      padding: 8px 12px;
+      font-size: 12px;
+      letter-spacing: 0.12em;
+    }
+
+    .chat-input-bar {
+      position: fixed;
+      left: 50%;
+      bottom: calc(96px + var(--safe-bottom));
+      z-index: 35;
+      width: min(100%, 430px);
+      transform: translateX(-50%);
+      min-height: 96px;
+      border-top: 2px solid var(--white);
+      border-bottom: 2px solid var(--white);
+      background: var(--black);
+      padding: 18px 18px 0;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .prompt-mark {
+      color: var(--muted);
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1;
+      animation: blink 1s steps(2, start) infinite;
+    }
+
+    .chat-input {
+      min-width: 0;
+      height: 56px;
+      border: 0;
+      background: transparent;
+      color: var(--white);
+      outline: 0;
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .chat-input::placeholder {
+      color: rgba(142, 145, 146, 0.42);
+    }
+
+    .send-btn {
+      min-height: 64px;
+      min-width: 104px;
+      background: var(--white);
+      color: var(--black);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+
+    .send-btn:hover,
+    .send-btn:focus-visible {
+      background: var(--black);
+      color: var(--white);
+    }
+
+    .error-line {
+      display: none;
+      margin: -20px 0 24px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .error-line.is-visible {
+      display: block;
+    }
+
+    @keyframes blink {
+      0%,
+      45% { opacity: 1; }
+      46%,
+      100% { opacity: 0; }
+    }
+
+    @media (max-width: 390px) {
+      .start-screen {
+        padding: 20px;
+      }
+
+      .start-stack {
+        gap: 52px;
+        padding: 20px;
+      }
+
+      .view-main {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .init-panel {
+        padding: 30px 20px 24px;
+      }
+
+      .profile-content {
+        padding: 36px 28px 40px;
+      }
+
+      .chat-main {
+        padding-left: 18px;
+        padding-right: 18px;
+      }
+
+      .chat-row {
+        grid-template-columns: 70px 1fr;
+        gap: 14px;
+      }
+
+      .chat-avatar {
+        width: 70px;
+      }
+
+      .message-box {
+        padding: 22px;
+      }
+
+      .chat-input-bar {
+        grid-template-columns: auto 1fr 92px;
+        gap: 8px;
+        padding-left: 14px;
+        padding-right: 14px;
+      }
+
+      .send-btn {
+        min-width: 92px;
+      }
+    }
+
+    @media (max-width: 345px) {
+      .topbar {
+        padding: 0 12px;
+      }
+
+      .topbar__left span:last-child {
+        display: none;
+      }
+
+      .chat-row {
+        grid-template-columns: 1fr;
+      }
+
+      .chat-avatar {
+        width: 88px;
+      }
+    }
+
+    .event-bar {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      min-height: 52px;
+      padding: 0 14px;
+      border-bottom: 2px solid var(--white);
+      background: var(--black);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-transform: uppercase;
+      font-size: clamp(13px, 4.4vw, 17px);
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    .event-bar .material-symbols-outlined {
+      font-size: 18px;
+      flex: 0 0 auto;
+    }
+
+    .event-bar__title {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .v2-main {
+      flex: 1;
+      padding: 26px 20px 34px;
+    }
+
+    .v2-init-panel {
+      padding: 24px 20px 24px;
+    }
+
+    .v2-title {
+      margin: 0;
+      font-size: clamp(32px, 10vw, 42px);
+      line-height: 1.05;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-shadow: 3px 3px 0 rgba(255, 255, 255, 0.2);
+      word-break: keep-all;
+    }
+
+    .v2-subtitle {
+      margin: 10px 0 0;
+      color: #c4c7c8;
+      font-size: 13px;
+      line-height: 1.35;
+      word-break: keep-all;
+    }
+
+    .upload-box {
+      position: relative;
+      width: 136px;
+      aspect-ratio: 1;
+      margin: 0 auto;
+      border: 2px dashed var(--muted);
+      background: var(--surface-low);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .upload-box:hover,
+    .upload-box:focus-within {
+      border-color: var(--white);
+    }
+
+    .upload-box input {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .upload-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      color: #c4c7c8;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .upload-empty .material-symbols-outlined {
+      font-size: 34px;
+    }
+
+    .upload-preview {
+      display: none;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(1) contrast(1.25);
+    }
+
+    .upload-box.has-image .upload-empty {
+      display: none;
+    }
+
+    .upload-box.has-image .upload-preview {
+      display: block;
+    }
+
+    .profile-main {
+      flex: 1;
+      padding: 56px 26px 46px;
+      display: flex;
+      flex-direction: column;
+      gap: 38px;
+    }
+
+    .profile-hero {
+      display: grid;
+      grid-template-columns: 136px 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+
+    .profile-avatar {
+      position: relative;
+      width: 136px;
+      aspect-ratio: 1;
+      border: 2px solid var(--white);
+      background: var(--surface);
+      overflow: hidden;
+    }
+
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      filter: grayscale(1) contrast(1.25) brightness(0.9);
+      display: block;
+    }
+
+    .profile-avatar img.is-hidden {
+      display: none;
+    }
+
+    .profile-avatar .portrait-fallback {
+      position: static;
+      display: block;
+      width: 100%;
+      height: 100%;
+      background: none;
+    }
+
+    .profile-avatar img:not(.is-hidden) + .portrait-fallback {
+      display: none;
+    }
+
+    .profile-avatar .portrait-fallback img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      filter: grayscale(1) contrast(1.2);
+    }
+
+    .v2-name-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .v2-heart {
+      color: var(--accent);
+      font-size: 28px;
+      font-variation-settings: "FILL" 1;
+      flex: 0 0 auto;
+    }
+
+    .v2-profile-name {
+      margin: 0;
+      font-size: clamp(41px, 12.2vw, 58px);
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-shadow: 4px 4px 0 rgba(255, 255, 255, 0.18);
+      word-break: keep-all;
+    }
+
+    .v2-role-line {
+      color: #e2e2e2;
+      font-size: clamp(24px, 7vw, 31px);
+      line-height: 1.2;
+      word-break: keep-all;
+    }
+
+    .dialogue-box {
+      position: relative;
+      border: 2px solid var(--white);
+      background: var(--black);
+      padding: 28px 30px;
+      min-height: 106px;
+      display: flex;
+      align-items: center;
+      color: var(--white);
+      font-size: clamp(25px, 7.4vw, 34px);
+      line-height: 1.45;
+      word-break: keep-all;
+    }
+
+    .dialogue-box::before,
+    .dialogue-box::after {
+      content: "";
+      position: absolute;
+      left: -6px;
+      right: -6px;
+      height: 8px;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, var(--white) 0 8px, transparent 8px calc(100% - 8px), var(--white) calc(100% - 8px)),
+        linear-gradient(var(--white), var(--white)) center/100% 2px no-repeat;
+    }
+
+    .dialogue-box::before {
+      top: -5px;
+    }
+
+    .dialogue-box::after {
+      bottom: -5px;
+    }
+
+    .v2-stat-block {
+      border: 2px solid var(--white);
+      background: var(--surface-low);
+      padding: 28px 30px;
+      min-height: 154px;
+    }
+
+    .v2-stat-title {
+      margin: 0 0 26px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--surface-high);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: clamp(18px, 5vw, 23px);
+      font-weight: 700;
+      letter-spacing: 0.07em;
+    }
+
+    .v2-list {
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      font-size: clamp(23px, 7vw, 29px);
+      line-height: 1.18;
+    }
+
+    .v2-list li::before {
+      content: "> ";
+      color: #c4c7c8;
+    }
+
+    .profile-talk-btn {
+      width: 100%;
+      min-height: 110px;
+      margin-top: 32px;
+      font-size: clamp(28px, 8.5vw, 41px);
+      letter-spacing: 0;
+    }
+
+    .profile-help {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      color: rgba(196, 199, 200, 0.35);
+      font-size: 16px;
+      letter-spacing: 0.12em;
+    }
+
+    .session-header {
+      position: sticky;
+      top: 0;
+      z-index: 35;
+      min-height: 98px;
+      border-bottom: 2px solid var(--white);
+      background: var(--surface);
+      display: grid;
+      grid-template-columns: 120px 1fr 120px;
+      align-items: center;
+      padding: 0 28px;
+      gap: 14px;
+    }
+
+    .back-btn {
+      min-height: 40px;
+      padding: 0 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 19px;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    .session-title {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      text-align: center;
+      font-size: clamp(16px, 4.2vw, 22px);
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-shadow: 3px 3px 0 rgba(255, 255, 255, 0.16);
+      white-space: nowrap;
+    }
+
+    .session-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 56px 28px 28px;
+      gap: 26px;
+      overflow-y: auto;
+      background: var(--surface);
+    }
+
+    .session-card {
+      position: relative;
+      border: 2px solid var(--white);
+      background: var(--surface-low);
+      padding: 48px 52px;
+      min-height: 394px;
+    }
+
+    .sprite-row {
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      margin-bottom: 28px;
+      min-height: 88px;
+    }
+
+    .sprite-box {
+      width: 116px;
+      height: 116px;
+      border: 2px solid var(--white);
+      background: var(--black);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .sprite-box img,
+    .sprite-row > img {
+      width: 98px;
+      max-height: 110px;
+      object-fit: contain;
+      filter: none;
+    }
+
+    .sprite-row > img {
+      width: 76px;
+    }
+
+    .session-message {
+      margin: 0;
+      color: var(--white);
+      font-size: clamp(27px, 7.7vw, 34px);
+      line-height: 1.55;
+      word-break: keep-all;
+    }
+
+    .awaiting {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 20px;
+      color: #c4c7c8;
+      font-size: clamp(18px, 5.2vw, 24px);
+      font-weight: 700;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .session-spacer {
+      flex: 1 1 360px;
+      min-height: 240px;
+    }
+
+    .query-title {
+      color: #c4c7c8;
+      font-size: clamp(18px, 5vw, 24px);
+      font-weight: 700;
+      letter-spacing: 0.11em;
+      text-transform: uppercase;
+    }
+
+    .query-list {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+
+    .query-btn {
+      min-height: 40px;
+      padding: 5px 16px;
+      font-size: clamp(18px, 5.1vw, 24px);
+      line-height: 1.2;
+      letter-spacing: 0.06em;
+      text-align: left;
+    }
+
+    .session-input-bar {
+      position: sticky;
+      bottom: 0;
+      z-index: 35;
+      border-top: 2px solid var(--white);
+      background: var(--surface);
+      padding: 28px 28px;
+      display: grid;
+      grid-template-columns: auto 1fr 138px;
+      gap: 14px;
+      align-items: center;
+    }
+
+    .dos-prompt {
+      color: var(--white);
+      font-size: clamp(27px, 7.6vw, 34px);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .session-input {
+      height: 86px;
+      min-width: 0;
+      border: 2px solid var(--white);
+      background: var(--black);
+      padding: 0 18px;
+      color: var(--white);
+      outline: 0;
+      font-size: clamp(23px, 6.4vw, 30px);
+    }
+
+    .session-input::placeholder {
+      color: rgba(142, 145, 146, 0.35);
+    }
+
+    .session-send {
+      min-height: 86px;
+      background: var(--white);
+      color: var(--black);
+      background-image: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.08) 0, rgba(0, 0, 0, 0.08) 2px, transparent 2px, transparent 5px);
+      font-size: clamp(18px, 4.8vw, 23px);
+      letter-spacing: 0.06em;
+    }
+
+    @media (max-width: 430px) {
+      .profile-main {
+        padding: 36px 18px 36px;
+        gap: 30px;
+      }
+
+      .profile-hero {
+        grid-template-columns: 108px 1fr;
+        gap: 18px;
+      }
+
+      .profile-avatar {
+        width: 108px;
+      }
+
+      .dialogue-box,
+      .v2-stat-block {
+        padding: 20px;
+      }
+
+      .session-header {
+        grid-template-columns: 88px minmax(0, 1fr) 0;
+        padding: 0 16px;
+      }
+
+      .back-btn {
+        padding: 0 8px;
+        font-size: 14px;
+      }
+
+      .session-title {
+        font-size: 14px;
+        letter-spacing: 0.07em;
+      }
+
+      .session-main {
+        padding: 34px 14px 22px;
+      }
+
+      .session-card {
+        padding: 32px 24px;
+      }
+
+      .session-input-bar {
+        grid-template-columns: auto 1fr 86px;
+        padding: 18px 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <section class="screen start-screen" data-screen="start" aria-label="Start screen">
+      <main class="start-card">
+        <div class="panel-scan"></div>
+        <span class="corner tl"></span>
+        <span class="corner tr"></span>
+        <span class="corner bl"></span>
+        <span class="corner br"></span>
+        <div class="start-stack">
+          <span class="material-symbols-outlined heart-icon" aria-hidden="true">favorite</span>
+          <h1 class="brand-title"><span>HACKER-</span><span>TALE</span></h1>
+          <button class="btn start-btn" type="button" data-action="start">[ CREATE MY CARD ]</button>
+        </div>
+      </main>
+    </section>
+
+    <section class="screen is-active" data-screen="init" aria-label="Character initialization screen">
+      <header class="event-bar">
+        <span class="material-symbols-outlined" aria-hidden="true">terminal</span>
+        <span class="event-bar__title">FLUTTER SEOUL HACKERTHON</span>
+      </header>
+
+      <main class="v2-main">
+        <section class="init-panel v2-init-panel">
+          <div class="panel-scan"></div>
+          <span class="pixel-corner tl"></span>
+          <span class="pixel-corner tr"></span>
+          <span class="pixel-corner bl"></span>
+          <span class="pixel-corner br"></span>
+          <div class="panel-content">
+            <h2 class="v2-title">AI 인터랙티브 명함 만들기</h2>
+            <p class="v2-subtitle">나만의 명함을 만들어 공유해 보세요</p>
+            <hr class="rule">
+
+            <form id="initForm" novalidate>
+              <div class="field">
+                <label class="label" for="avatarInput">
+                  <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                  프로필 이미지 등록
+                </label>
+                <label class="upload-box" id="uploadBox">
+                  <img class="upload-preview" id="avatarPreview" alt="Profile image preview">
+                  <span class="upload-empty" id="uploadEmpty">
+                    <span class="material-symbols-outlined" aria-hidden="true">photo_camera</span>
+                    <span>UPLOAD_IMG</span>
+                  </span>
+                  <input id="avatarInput" name="avatar" type="file" accept="image/*">
+                </label>
+              </div>
+
+              <div class="field">
+                <label class="label" for="designation">
+                  <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                  이름을 입력하세요
+                </label>
+                <input class="terminal-input" id="designation" name="designation" type="text" autocomplete="off" maxlength="24" placeholder="예: 홍길동">
+              </div>
+
+              <div class="field">
+                <div class="label">
+                  <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                  클래스 선택
+                </div>
+                <div class="class-grid" role="radiogroup" aria-label="Select class">
+                  <label class="class-option">
+                    <input type="radio" name="class" value="Developer">
+                    <span class="class-card">
+                      <span class="class-top">
+                        <span class="material-symbols-outlined" aria-hidden="true">terminal</span>
+                        <span>[01]</span>
+                      </span>
+                      <span>
+                        <span class="class-name">개발자</span>
+                        <span class="class-desc">기본 코드 구조를 조작합니다. 높은 논리 스탯.</span>
+                      </span>
+                    </span>
+                  </label>
+
+                  <label class="class-option">
+                    <input type="radio" name="class" value="Designer">
+                    <span class="class-card">
+                      <span class="class-top">
+                        <span class="material-symbols-outlined" aria-hidden="true">brush</span>
+                        <span>[02]</span>
+                      </span>
+                      <span>
+                        <span class="class-name">디자이너</span>
+                        <span class="class-desc">시각적 매트릭스를 제어합니다. 높은 통찰 스탯.</span>
+                      </span>
+                    </span>
+                  </label>
+
+                  <label class="class-option">
+                    <input type="radio" name="class" value="Planner">
+                    <span class="class-card">
+                      <span class="class-top">
+                        <span class="material-symbols-outlined" aria-hidden="true">account_tree</span>
+                        <span>[03]</span>
+                      </span>
+                      <span>
+                        <span class="class-name">기획자</span>
+                        <span class="class-desc">시스템 흐름을 설계합니다. 높은 전략 스탯.</span>
+                      </span>
+                    </span>
+                  </label>
+
+                  <label class="class-option">
+                    <input type="radio" name="class" value="Founder">
+                    <span class="class-card">
+                      <span class="class-top">
+                        <span class="material-symbols-outlined" aria-hidden="true">local_fire_department</span>
+                        <span>[04]</span>
+                      </span>
+                      <span>
+                        <span class="class-name">창업가</span>
+                        <span class="class-desc">핵심 시퀀스를 시작합니다. 높은 카리스마 스탯.</span>
+                      </span>
+                    </span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="label" for="intent">
+                  <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                  스킬/전문 분야
+                </label>
+                <textarea class="terminal-textarea" id="intent" name="intent" maxlength="256" placeholder="보유하신 스킬이나 전문 분야를 입력해 주세요..."></textarea>
+                <div class="char-count">최대 <span id="charCount">0</span>/256자</div>
+              </div>
+
+              <div class="field">
+                <label class="label" for="interests">
+                  <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                  관심사/취미
+                </label>
+                <input class="terminal-input" id="interests" name="interests" type="text" autocomplete="off" maxlength="160" placeholder="예: 코딩, 독서, 게임">
+              </div>
+
+              <div class="field">
+                <label class="label" for="bio">
+                  <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                  자기소개
+                </label>
+                <textarea class="terminal-textarea" id="bio" name="bio" maxlength="256" placeholder="간단한 자기소개를 입력해 주세요..."></textarea>
+              </div>
+
+              <p class="error-line" id="formError">&gt; 필수 입력값을 확인해 주세요</p>
+
+              <div class="submit-wrap">
+                <button class="btn submit-btn" type="submit">
+                  <span>명함 생성하기</span>
+                  <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </section>
+      </main>
+    </section>
+
+    <section class="screen" data-screen="profile" aria-label="Profile screen">
+      <header class="event-bar">
+        <span class="material-symbols-outlined" aria-hidden="true">terminal</span>
+        <span class="event-bar__title">LV 19 HP 92/92</span>
+      </header>
+
+      <main class="profile-main">
+        <section class="profile-hero">
+          <div class="profile-avatar">
+            <img id="profilePortrait" alt="Profile portrait">
+            <span class="portrait-fallback" aria-hidden="true">
+              <img id="profileSprite" src="/characters/designer.png" alt="">
+            </span>
+          </div>
+          <div>
+            <div class="v2-name-row">
+              <span class="material-symbols-outlined v2-heart" aria-hidden="true">favorite</span>
+              <h1 class="v2-profile-name" id="profileName">조소미</h1>
+            </div>
+            <div class="v2-role-line"><span id="profileClass">디자이너</span> <span aria-hidden="true">|</span> LV <span id="profileLevel">5</span></div>
+          </div>
+        </section>
+
+        <section class="dialogue-box" id="profileBio">안녕하세요!</section>
+
+        <section class="v2-stat-block">
+          <h2 class="v2-stat-title"><span class="material-symbols-outlined" aria-hidden="true">swords</span> ATK - 스킬</h2>
+          <ul class="v2-list" id="profileSkills"></ul>
+        </section>
+
+        <section class="v2-stat-block">
+          <h2 class="v2-stat-title"><span class="material-symbols-outlined" aria-hidden="true">shield</span> DEF - 관심사</h2>
+          <ul class="v2-list" id="profileInterests"></ul>
+        </section>
+
+        <button class="btn profile-talk-btn" type="button" data-action="talk">대화하기</button>
+        <div class="profile-help"><span class="material-symbols-outlined" aria-hidden="true">mouse</span> 클릭하여 대화 시작</div>
+      </main>
+    </section>
+
+    <section class="screen" data-screen="chat" aria-label="Chat screen">
+      <header class="session-header">
+        <button class="btn back-btn" type="button" data-action="profile">
+          <span class="material-symbols-outlined" aria-hidden="true">arrow_back_ios_new</span>
+          <span>뒤로</span>
+        </button>
+        <div class="session-title">TERMINAL // SESSION_ACTIVE</div>
+        <div></div>
+      </header>
+
+      <main class="session-main" id="chatMain">
+        <section class="session-card">
+          <div class="panel-scan"></div>
+          <div class="sprite-row" id="chatSprites">
+            <span class="sprite-box"><img id="chatPrimarySprite" src="/characters/designer.png" alt=""></span>
+            <img src="/characters/founder.png" alt="">
+            <img src="/characters/planner.png" alt="">
+          </div>
+          <p class="session-message" id="chatAnswer">안녕하세요! 조소미님과 대화를 시작합니다.</p>
+          <div class="awaiting"><span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span> AWAITING_INPUT</div>
+        </section>
+
+        <div class="session-spacer"></div>
+
+        <section class="query-list" aria-label="Question commands">
+          <div class="query-title">&gt; AVAILABLE_QUERIES</div>
+          <button class="btn query-btn" type="button" data-question="HOBBIES">&gt; 어떤 취미를 갖고 계세요?</button>
+          <button class="btn query-btn" type="button" data-question="FOOD">&gt; 어떤 음식을 좋아하세요?</button>
+          <button class="btn query-btn" type="button" data-question="PROJECTS">&gt; 요즘 관심있는 프로젝트가 있나요?</button>
+          <button class="btn query-btn" type="button" data-question="WORK_STYLE">&gt; 어떤 협업 스타일을 선호하세요?</button>
+        </section>
+      </main>
+
+      <form class="session-input-bar" id="chatForm">
+        <span class="dos-prompt">C:\&gt;</span>
+        <input class="session-input" id="questionInput" type="text" autocomplete="off" placeholder="메시지 입력...">
+        <button class="btn session-send" type="submit">전송</button>
+      </form>
+    </section>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+  <div class="scanlines"></div>
+
+  <script type="module">
+    import { createClient } from "@supabase/supabase-js";
+
+    const env = import.meta.env || {};
+    const supabaseUrl = env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY;
+    const supabase = supabaseUrl && supabaseAnonKey
+      ? createClient(supabaseUrl, supabaseAnonKey)
+      : null;
+
+    const defaultProfile = {
+      name: "조소미",
+      class: "Designer",
+      roleTitle: "디자이너",
+      level: 5,
+      hp: "92/92",
+      status: "ONLINE",
+      intent: "기획, 디자인, 피그마, 앰플리튜드",
+      skills: ["기획", "디자인", "피그마", "앰플리튜드"],
+      interests: ["음악듣기"],
+      bio: "안녕하세요!",
+      avatarDataUrl: "",
+      stats: {
+        "ATK - 스킬": ["기획", "디자인", "피그마", "앰플리튜드"],
+        "DEF - 관심사": ["음악듣기"]
+      }
+    };
+
+    const classProfiles = {
+      Developer: {
+        roleTitle: "개발자",
+        sprite: "/characters/developer.png"
+      },
+      Designer: {
+        roleTitle: "디자이너",
+        sprite: "/characters/designer.png"
+      },
+      Planner: {
+        roleTitle: "기획자",
+        sprite: "/characters/planner.png"
+      },
+      Founder: {
+        roleTitle: "창업가",
+        sprite: "/characters/founder.png"
+      }
+    };
+
+    const responses = {
+      HOBBIES: (profile) => `> ${profile.name}님의 관심사/취미는 ${formatList(profile.interests)} 입니다.`,
+      FOOD: () => "> 아직 음식 취향 데이터는 등록되지 않았습니다. 다음 업데이트 슬롯에 저장 예정입니다.",
+      PROJECTS: (profile) => `> 최근 관심 프로젝트는 ${profile.intent || formatList(profile.skills)} 방향과 연결되어 있습니다.`,
+      WORK_STYLE: (profile) => `> ${profile.name}님은 목표가 명확하고 피드백 루프가 빠른 협업을 선호합니다. 현재 클래스: ${profile.roleTitle}.`
+    };
+
+    const state = {
+      screen: "init",
+      profile: defaultProfile
+    };
+
+    const screens = [...document.querySelectorAll("[data-screen]")];
+    const form = document.getElementById("initForm");
+    const designation = document.getElementById("designation");
+    const intent = document.getElementById("intent");
+    const interests = document.getElementById("interests");
+    const bio = document.getElementById("bio");
+    const avatarInput = document.getElementById("avatarInput");
+    const avatarPreview = document.getElementById("avatarPreview");
+    const uploadBox = document.getElementById("uploadBox");
+    const charCount = document.getElementById("charCount");
+    const errorLine = document.getElementById("formError");
+    const toast = document.getElementById("toast");
+    const chatAnswer = document.getElementById("chatAnswer");
+    const questionInput = document.getElementById("questionInput");
+    const chatForm = document.getElementById("chatForm");
+
+    function normalizeName(value) {
+      const clean = value.trim().replace(/\s+/g, " ").replace(/[^\w\uAC00-\uD7A3 -]/g, "");
+      return clean || defaultProfile.name;
+    }
+
+    function parseList(value) {
+      return String(value || "")
+        .split(/[,，\n]/)
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .slice(0, 8);
+    }
+
+    function formatList(items) {
+      const list = Array.isArray(items) ? items : parseList(items);
+      return list.length ? list.join(", ") : "미등록";
+    }
+
+    function spriteForClass(className) {
+      return (classProfiles[className] || classProfiles.Designer).sprite;
+    }
+
+    function classTitle(className) {
+      return (classProfiles[className] || classProfiles.Designer).roleTitle;
+    }
+
+    function selectedClass() {
+      const field = form.querySelector('input[name="class"]:checked');
+      return field ? field.value : "";
+    }
+
+    function buildProfile() {
+      const className = selectedClass() || "Developer";
+      const meta = classProfiles[className] || classProfiles.Developer;
+      const skills = parseList(intent.value);
+      const interestList = parseList(interests.value);
+      return {
+        name: normalizeName(designation.value),
+        class: className,
+        roleTitle: meta.roleTitle,
+        level: 5,
+        hp: "92/92",
+        status: "ONLINE",
+        intent: intent.value.trim(),
+        skills: skills.length ? skills : ["협업", "문제 해결"],
+        interests: interestList.length ? interestList : ["새로운 프로젝트"],
+        bio: bio.value.trim() || "안녕하세요!",
+        avatarDataUrl: state.profile.avatarDataUrl || "",
+        stats: {
+          "ATK - 스킬": skills.length ? skills : ["협업", "문제 해결"],
+          "DEF - 관심사": interestList.length ? interestList : ["새로운 프로젝트"]
+        }
+      };
+    }
+
+    function cardFromRow(row) {
+      return {
+        id: row.id,
+        name: row.name || defaultProfile.name,
+        class: row.class_name || defaultProfile.class,
+        roleTitle: row.role_title || defaultProfile.roleTitle,
+        level: row.level || defaultProfile.level,
+        hp: row.hp || defaultProfile.hp,
+        status: row.status || defaultProfile.status,
+        intent: row.intent || defaultProfile.intent,
+        skills: row.skills || row.stats?.["ATK - 스킬"] || defaultProfile.skills,
+        interests: row.interests || row.stats?.["DEF - 관심사"] || defaultProfile.interests,
+        bio: row.bio || defaultProfile.bio,
+        avatarDataUrl: row.avatar_data_url || "",
+        stats: row.stats || defaultProfile.stats,
+        createdAt: row.created_at
+      };
+    }
+
+    function rowFromProfile(profile) {
+      return {
+        name: profile.name,
+        class_name: profile.class,
+        role_title: profile.roleTitle,
+        level: profile.level,
+        hp: profile.hp,
+        status: profile.status,
+        intent: profile.intent,
+        skills: profile.skills,
+        interests: profile.interests,
+        bio: profile.bio,
+        avatar_data_url: profile.avatarDataUrl || null,
+        stats: profile.stats,
+        preset_questions: ["HOBBIES", "FOOD", "PROJECTS", "WORK_STYLE"]
+      };
+    }
+
+    function renderProfile() {
+      const profile = state.profile;
+      document.getElementById("profileName").textContent = profile.name;
+      document.getElementById("profileClass").textContent = profile.roleTitle || classTitle(profile.class);
+      document.getElementById("profileLevel").textContent = profile.level || 5;
+      document.getElementById("profileBio").textContent = profile.bio || "안녕하세요!";
+
+      const sprite = spriteForClass(profile.class);
+      document.getElementById("profileSprite").src = sprite;
+      document.getElementById("chatPrimarySprite").src = sprite;
+
+      const portrait = document.getElementById("profilePortrait");
+      if (profile.avatarDataUrl) {
+        portrait.src = profile.avatarDataUrl;
+        portrait.classList.remove("is-hidden");
+      } else {
+        portrait.removeAttribute("src");
+        portrait.classList.add("is-hidden");
+      }
+
+      renderList(document.getElementById("profileSkills"), profile.skills);
+      renderList(document.getElementById("profileInterests"), profile.interests);
+    }
+
+    function renderList(target, values) {
+      const items = Array.isArray(values) && values.length ? values : ["미등록"];
+      target.innerHTML = "";
+      items.forEach((item) => {
+        const li = document.createElement("li");
+        li.textContent = item;
+        target.appendChild(li);
+      });
+    }
+
+    function setScreen(name) {
+      state.screen = name;
+      screens.forEach((screen) => {
+        screen.classList.toggle("is-active", screen.dataset.screen === name);
+      });
+      if (name === "profile" || name === "chat") {
+        renderProfile();
+      }
+      if (name === "chat") {
+        typeAnswer(`안녕하세요! ${state.profile.name}님과 대화를 시작합니다.`);
+      }
+      history.replaceState(null, "", name === "init" ? location.pathname + location.search : `#${name}`);
+    }
+
+    function typeAnswer(text) {
+      chatAnswer.textContent = "";
+      const chars = text.split("");
+      let index = 0;
+      window.clearInterval(typeAnswer.timer);
+      typeAnswer.timer = window.setInterval(() => {
+        chatAnswer.textContent += chars[index] || "";
+        index += 1;
+        if (index >= chars.length) {
+          window.clearInterval(typeAnswer.timer);
+        }
+      }, 14);
+    }
+
+    function answerQuestion(keyOrText) {
+      const key = String(keyOrText || "").trim().toUpperCase();
+      const profile = state.profile;
+      const text = responses[key]
+        ? responses[key](profile)
+        : `> ${profile.name}님에게 전달된 질문을 처리했습니다. 소개: ${profile.bio || "안녕하세요!"}`;
+      typeAnswer(text);
+      logChatEvent(responses[key] ? key : "CUSTOM", keyOrText, text);
+    }
+
+    async function logChatEvent(questionType, question, response) {
+      if (!supabase || !state.profile.id) return;
+
+      const { error } = await supabase.from("chat_events").insert({
+        card_id: state.profile.id,
+        question_type: questionType,
+        question: String(question || "").slice(0, 512),
+        response: String(response || "").slice(0, 2000)
+      });
+
+      if (error) {
+        console.warn("Unable to store chat event", error);
+      }
+    }
+
+    async function saveProfile(profile = state.profile) {
+      let storedProfile = { ...profile };
+
+      try {
+        localStorage.setItem("hackerTaleProfile", JSON.stringify(storedProfile));
+      } catch (error) {
+        console.warn("Local storage unavailable", error);
+      }
+
+      if (!supabase) return storedProfile;
+
+      const { data, error } = await supabase
+        .from("cards")
+        .insert(rowFromProfile(storedProfile))
+        .select("id,name,class_name,role_title,level,hp,status,intent,skills,interests,bio,avatar_data_url,stats,created_at")
+        .single();
+
+      if (error) {
+        console.warn("Unable to sync card with Supabase", error);
+        showToast("> SUPABASE_SYNC_FAILED_LOCAL_ONLY");
+        return storedProfile;
+      }
+
+      storedProfile = cardFromRow(data);
+
+      try {
+        localStorage.setItem("hackerTaleProfile", JSON.stringify(storedProfile));
+      } catch (error) {
+        console.warn("Local storage unavailable", error);
+      }
+
+      showToast("> CARD_SYNCED_TO_SUPABASE");
+      return storedProfile;
+    }
+
+    async function loadProfile() {
+      const shared = new URLSearchParams(location.search).get("card");
+      if (shared) {
+        if (supabase && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(shared)) {
+          const { data, error } = await supabase
+            .from("cards")
+            .select("id,name,class_name,role_title,level,hp,status,intent,skills,interests,bio,avatar_data_url,stats,created_at")
+            .eq("id", shared)
+            .eq("is_public", true)
+            .maybeSingle();
+
+          if (data) {
+            supabase.rpc("increment_card_view", { card_uuid: data.id }).then(({ error }) => {
+              if (error) console.warn("Unable to increment card view", error);
+            });
+            return cardFromRow(data);
+          }
+
+          if (error) {
+            console.warn("Unable to load shared card", error);
+          }
+        }
+
+        try {
+          return JSON.parse(decodeURIComponent(escape(atob(shared))));
+        } catch (error) {
+          console.warn("Invalid shared card", error);
+        }
+      }
+
+      try {
+        const cached = localStorage.getItem("hackerTaleProfile");
+        if (cached) {
+          return JSON.parse(cached);
+        }
+      } catch (error) {
+        console.warn("Local storage unavailable", error);
+      }
+
+      return defaultProfile;
+    }
+
+    function profileLink() {
+      if (supabase && state.profile.id) {
+        const baseUrl = location.href.replace(/[?#].*$/, "");
+        return `${baseUrl}?card=${encodeURIComponent(state.profile.id)}#profile`;
+      }
+
+      const payload = btoa(unescape(encodeURIComponent(JSON.stringify(state.profile))));
+      const baseUrl = location.href.replace(/[?#].*$/, "");
+      return `${baseUrl}?card=${encodeURIComponent(payload)}#profile`;
+    }
+
+    async function copyShareLink() {
+      if (supabase && !state.profile.id) {
+        state.profile = await saveProfile(state.profile);
+        renderProfile();
+      }
+
+      const link = profileLink();
+      try {
+        await navigator.clipboard.writeText(link);
+      } catch (error) {
+        const helper = document.createElement("input");
+        helper.value = link;
+        helper.setAttribute("readonly", "");
+        helper.style.position = "fixed";
+        helper.style.opacity = "0";
+        document.body.appendChild(helper);
+        helper.select();
+        document.execCommand("copy");
+        document.body.removeChild(helper);
+      }
+      showToast("> LINK_COPIED_TO_BUFFER");
+    }
+
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add("is-visible");
+      window.clearTimeout(showToast.timer);
+      showToast.timer = window.setTimeout(() => {
+        toast.classList.remove("is-visible");
+      }, 1800);
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function readImageAsDataUrl(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const image = new Image();
+          image.onload = () => {
+            const canvas = document.createElement("canvas");
+            const size = 320;
+            const scale = Math.max(size / image.width, size / image.height);
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext("2d");
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, size, size);
+            ctx.drawImage(
+              image,
+              (size - image.width * scale) / 2,
+              (size - image.height * scale) / 2,
+              image.width * scale,
+              image.height * scale
+            );
+            resolve(canvas.toDataURL("image/jpeg", 0.78));
+          };
+          image.onerror = reject;
+          image.src = reader.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.addEventListener("click", (event) => {
+      const action = event.target.closest("[data-action]")?.dataset.action;
+      const question = event.target.closest("[data-question]")?.dataset.question;
+
+      if (question) {
+        answerQuestion(question);
+        return;
+      }
+
+      if (!action) return;
+
+      if (action === "start") setScreen("init");
+      if (action === "talk") setScreen("chat");
+      if (action === "profile") setScreen("profile");
+      if (action === "save") copyShareLink();
+      if (action === "act") showToast("> ACT_MODULE_LOCKED_FOR_MVP");
+    });
+
+    avatarInput.addEventListener("change", async () => {
+      const file = avatarInput.files?.[0];
+      if (!file) return;
+
+      try {
+        const dataUrl = await readImageAsDataUrl(file);
+        state.profile = { ...state.profile, avatarDataUrl: dataUrl };
+        avatarPreview.src = dataUrl;
+        uploadBox.classList.add("has-image");
+      } catch (error) {
+        console.warn("Unable to process image", error);
+        showToast("> IMAGE_UPLOAD_FAILED");
+      }
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const hasName = designation.value.trim().length > 0;
+      const hasIntent = intent.value.trim().length > 0;
+      const hasInterests = interests.value.trim().length > 0;
+      const hasBio = bio.value.trim().length > 0;
+      const hasClass = selectedClass().length > 0;
+      if (!hasName || !hasIntent || !hasInterests || !hasBio || !hasClass) {
+        errorLine.classList.add("is-visible");
+        showToast("> INPUT_VALIDATION_FAILED");
+        return;
+      }
+      errorLine.classList.remove("is-visible");
+      state.profile = buildProfile();
+      saveProfile(state.profile).then((profile) => {
+        state.profile = profile;
+        setScreen("profile");
+      });
+    });
+
+    intent.addEventListener("input", () => {
+      charCount.textContent = intent.value.length;
+    });
+
+    chatForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const query = questionInput.value.trim();
+      if (!query) return;
+      questionInput.value = "";
+      answerQuestion(query);
+    });
+
+    document.getElementById("profilePortrait").addEventListener("error", (event) => {
+      event.currentTarget.classList.add("is-hidden");
+    });
+
+    async function boot() {
+      state.profile = await loadProfile();
+
+      if (location.hash === "#init") {
+        setScreen("init");
+      } else if (location.search.includes("card=") || location.hash === "#profile") {
+        setScreen("profile");
+      } else if (location.hash === "#chat") {
+        setScreen("chat");
+      } else {
+        setScreen("init");
+      }
+    }
+
+    boot();
+  </script>
+</body>
+</html>
