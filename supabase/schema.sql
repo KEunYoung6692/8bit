@@ -16,6 +16,7 @@ create table if not exists public.cards (
   skills text[] not null default '{}'::text[],
   interests text[] not null default '{}'::text[],
   bio text not null default '안녕하세요!' check (char_length(bio) between 1 and 256),
+  resume_text text not null default '' check (char_length(resume_text) <= 20000),
   avatar_data_url text check (avatar_data_url is null or char_length(avatar_data_url) <= 500000),
   stats jsonb not null default '{}'::jsonb,
   preset_questions text[] not null default array['HOBBIES', 'FOOD', 'PROJECTS', 'WORK_STYLE'],
@@ -28,6 +29,7 @@ create table if not exists public.cards (
 alter table public.cards add column if not exists skills text[] not null default '{}'::text[];
 alter table public.cards add column if not exists interests text[] not null default '{}'::text[];
 alter table public.cards add column if not exists bio text not null default '안녕하세요!';
+alter table public.cards add column if not exists resume_text text not null default '';
 alter table public.cards add column if not exists avatar_data_url text;
 
 create table if not exists public.chat_events (

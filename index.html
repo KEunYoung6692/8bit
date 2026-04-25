@@ -1188,6 +1188,29 @@
       display: block;
     }
 
+    .upload-box.is-generating::after {
+      content: "GENERATING_8BIT...";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(0, 0, 0, 0.78);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.09em;
+      text-align: center;
+      padding: 12px;
+    }
+
+    .field-hint {
+      color: rgba(196, 199, 200, 0.72);
+      font-size: 11px;
+      line-height: 1.45;
+      letter-spacing: 0.05em;
+      word-break: keep-all;
+    }
+
     .profile-main {
       flex: 1;
       padding: 56px 26px 46px;
@@ -1741,6 +1764,17 @@
                 <textarea class="terminal-textarea" id="bio" name="bio" maxlength="256" placeholder="간단한 자기소개를 입력해 주세요..."></textarea>
               </div>
 
+              <div class="field">
+                <label class="label" for="resumeText">
+                  <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span>
+                  소개/이력서
+                </label>
+                <textarea class="terminal-textarea" id="resumeText" name="resumeText" maxlength="12000" placeholder="소개글 또는 이력서 내용을 붙여넣어 주세요. 챗봇은 이 내용을 기반으로 답변합니다."></textarea>
+                <label class="btn profile-link" for="resumeFile">TXT/MD 파일 불러오기</label>
+                <input class="sr-only" id="resumeFile" name="resumeFile" type="file" accept=".txt,.md,.markdown,text/plain,text/markdown">
+                <div class="field-hint">PDF/DOCX는 내용을 복사해 붙여넣는 방식이 가장 안정적입니다.</div>
+              </div>
+
               <p class="error-line" id="formError">&gt; 필수 입력값을 확인해 주세요</p>
 
               <div class="submit-wrap">
@@ -1845,7 +1879,11 @@
     const env = import.meta.env || {};
     const supabaseUrl = env.VITE_SUPABASE_URL;
     const supabaseAnonKey = env.VITE_SUPABASE_ANON_KEY;
-    const supabase = supabaseUrl && supabaseAnonKey
+    const hasUsableSupabaseEnv = supabaseUrl
+      && supabaseAnonKey
+      && !supabaseUrl.includes("YOUR_")
+      && !supabaseAnonKey.includes("YOUR_");
+    const supabase = hasUsableSupabaseEnv
       ? createClient(supabaseUrl, supabaseAnonKey)
       : null;
 
@@ -1860,6 +1898,7 @@
       skills: ["기획", "디자인", "피그마", "앰플리튜드"],
       interests: ["음악듣기"],
       bio: "안녕하세요!",
+      resumeText: "기획, 디자인, 피그마, 앰플리튜드에 관심이 있고 협업을 좋아합니다.",
       avatarDataUrl: "",
       stats: {
         "ATK - 스킬": ["기획", "디자인", "피그마", "앰플리튜드"],
@@ -1889,7 +1928,7 @@
     const responses = {
       HOBBIES: (profile) => `> ${profile.name}님의 관심사/취미는 ${formatList(profile.interests)} 입니다.`,
       FOOD: () => "> 아직 음식 취향 데이터는 등록되지 않았습니다. 다음 업데이트 슬롯에 저장 예정입니다.",
-      PROJECTS: (profile) => `> 최근 관심 프로젝트는 ${profile.intent || formatList(profile.skills)} 방향과 연결되어 있습니다.`,
+      PROJECTS: (profile) => `> 최근 관심 프로젝트는 ${profile.resumeText || profile.intent || formatList(profile.skills)} 방향과 연결되어 있습니다.`,
       WORK_STYLE: (profile) => `> ${profile.name}님은 목표가 명확하고 피드백 루프가 빠른 협업을 선호합니다. 현재 클래스: ${profile.roleTitle}.`
     };
 
@@ -1904,6 +1943,8 @@
     const intent = document.getElementById("intent");
     const interests = document.getElementById("interests");
     const bio = document.getElementById("bio");
+    const resumeText = document.getElementById("resumeText");
+    const resumeFile = document.getElementById("resumeFile");
     const avatarInput = document.getElementById("avatarInput");
     const avatarPreview = document.getElementById("avatarPreview");
     const uploadBox = document.getElementById("uploadBox");
@@ -1961,6 +2002,7 @@
         skills: skills.length ? skills : ["협업", "문제 해결"],
         interests: interestList.length ? interestList : ["새로운 프로젝트"],
         bio: bio.value.trim() || "안녕하세요!",
+        resumeText: resumeText.value.trim(),
         avatarDataUrl: state.profile.avatarDataUrl || "",
         stats: {
           "ATK - 스킬": skills.length ? skills : ["협업", "문제 해결"],
@@ -1982,6 +2024,7 @@
         skills: row.skills || row.stats?.["ATK - 스킬"] || defaultProfile.skills,
         interests: row.interests || row.stats?.["DEF - 관심사"] || defaultProfile.interests,
         bio: row.bio || defaultProfile.bio,
+        resumeText: row.resume_text || "",
         avatarDataUrl: row.avatar_data_url || "",
         stats: row.stats || defaultProfile.stats,
         createdAt: row.created_at
@@ -2000,6 +2043,7 @@
         skills: profile.skills,
         interests: profile.interests,
         bio: profile.bio,
+        resume_text: profile.resumeText || "",
         avatar_data_url: profile.avatarDataUrl || null,
         stats: profile.stats,
         preset_questions: ["HOBBIES", "FOOD", "PROJECTS", "WORK_STYLE"]
@@ -2068,18 +2112,62 @@
       }, 14);
     }
 
-    function answerQuestion(keyOrText) {
+    async function answerQuestion(keyOrText) {
       const key = String(keyOrText || "").trim().toUpperCase();
       const profile = state.profile;
-      const text = responses[key]
+      let text = responses[key]
         ? responses[key](profile)
         : `> ${profile.name}님에게 전달된 질문을 처리했습니다. 소개: ${profile.bio || "안녕하세요!"}`;
+
+      typeAnswer("> AI 응답 생성 중...");
+
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            question: keyOrText,
+            profile: {
+              name: profile.name,
+              class: profile.class,
+              roleTitle: profile.roleTitle,
+              skills: profile.skills,
+              interests: profile.interests,
+              bio: profile.bio,
+              resumeText: profile.resumeText
+            }
+          })
+        });
+        const payload = await response.json();
+        if (response.ok && payload.answer) {
+          text = payload.answer;
+        } else {
+          console.warn("AI chat fallback used", payload.error);
+        }
+      } catch (error) {
+        console.warn("AI chat fallback used", error);
+      }
+
       typeAnswer(text);
       logChatEvent(responses[key] ? key : "CUSTOM", keyOrText, text);
     }
 
     async function logChatEvent(questionType, question, response) {
-      if (!supabase || !state.profile.id) return;
+      if (!state.profile.id) return;
+
+      if (!supabase) {
+        await fetch("/api/chat-events", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cardId: state.profile.id,
+            questionType,
+            question: String(question || "").slice(0, 512),
+            response: String(response || "").slice(0, 2000)
+          })
+        }).catch((error) => console.warn("Unable to store chat event", error));
+        return;
+      }
 
       const { error } = await supabase.from("chat_events").insert({
         card_id: state.profile.id,
@@ -2102,12 +2190,30 @@
         console.warn("Local storage unavailable", error);
       }
 
-      if (!supabase) return storedProfile;
+      if (!supabase) {
+        try {
+          const response = await fetch("/api/cards", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(storedProfile)
+          });
+          const payload = await response.json();
+          if (!response.ok || !payload.card) throw new Error(payload.error || "Card API failed");
+          storedProfile = payload.card;
+          localStorage.setItem("hackerTaleProfile", JSON.stringify(storedProfile));
+          showToast("> CARD_SYNCED_TO_DB");
+          return storedProfile;
+        } catch (error) {
+          console.warn("Unable to sync card with DB API", error);
+          showToast("> DB_SYNC_FAILED_LOCAL_ONLY");
+          return storedProfile;
+        }
+      }
 
       const { data, error } = await supabase
         .from("cards")
         .insert(rowFromProfile(storedProfile))
-        .select("id,name,class_name,role_title,level,hp,status,intent,skills,interests,bio,avatar_data_url,stats,created_at")
+        .select("id,name,class_name,role_title,level,hp,status,intent,skills,interests,bio,resume_text,avatar_data_url,stats,created_at")
         .single();
 
       if (error) {
@@ -2134,7 +2240,7 @@
         if (supabase && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(shared)) {
           const { data, error } = await supabase
             .from("cards")
-            .select("id,name,class_name,role_title,level,hp,status,intent,skills,interests,bio,avatar_data_url,stats,created_at")
+            .select("id,name,class_name,role_title,level,hp,status,intent,skills,interests,bio,resume_text,avatar_data_url,stats,created_at")
             .eq("id", shared)
             .eq("is_public", true)
             .maybeSingle();
@@ -2148,6 +2254,17 @@
 
           if (error) {
             console.warn("Unable to load shared card", error);
+          }
+        }
+
+        if (/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(shared)) {
+          try {
+            const response = await fetch(`/api/cards?id=${encodeURIComponent(shared)}`);
+            const payload = await response.json();
+            if (response.ok && payload.card) return payload.card;
+            console.warn("Unable to load shared card from DB API", payload.error);
+          } catch (error) {
+            console.warn("Unable to load shared card from DB API", error);
           }
         }
 
@@ -2253,6 +2370,31 @@
       });
     }
 
+    async function generateEightBitAvatar(sourceDataUrl) {
+      uploadBox.classList.add("is-generating");
+      showToast("> 8BIT_IMAGE_GENERATION_STARTED");
+
+      try {
+        const response = await fetch("/api/generate-avatar", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            imageDataUrl: sourceDataUrl,
+            name: normalizeName(designation.value),
+            className: selectedClass() || state.profile.class,
+            bio: bio.value || resumeText.value
+          })
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload.imageDataUrl) {
+          throw new Error(payload.error || "Image generation failed");
+        }
+        return payload.imageDataUrl;
+      } finally {
+        uploadBox.classList.remove("is-generating");
+      }
+    }
+
     document.addEventListener("click", (event) => {
       const action = event.target.closest("[data-action]")?.dataset.action;
       const question = event.target.closest("[data-question]")?.dataset.question;
@@ -2277,12 +2419,37 @@
 
       try {
         const dataUrl = await readImageAsDataUrl(file);
-        state.profile = { ...state.profile, avatarDataUrl: dataUrl };
         avatarPreview.src = dataUrl;
         uploadBox.classList.add("has-image");
+
+        let finalAvatar = dataUrl;
+        try {
+          finalAvatar = await generateEightBitAvatar(dataUrl);
+          showToast("> 8BIT_IMAGE_READY");
+        } catch (error) {
+          console.warn("Using uploaded image because generation failed", error);
+          showToast("> 8BIT_GENERATION_FAILED_USING_UPLOAD");
+        }
+
+        state.profile = { ...state.profile, avatarDataUrl: finalAvatar };
+        avatarPreview.src = finalAvatar;
       } catch (error) {
         console.warn("Unable to process image", error);
         showToast("> IMAGE_UPLOAD_FAILED");
+      }
+    });
+
+    resumeFile.addEventListener("change", async () => {
+      const file = resumeFile.files?.[0];
+      if (!file) return;
+
+      try {
+        const text = await file.text();
+        resumeText.value = text.slice(0, 12000);
+        showToast("> RESUME_LOADED");
+      } catch (error) {
+        console.warn("Unable to read resume file", error);
+        showToast("> RESUME_LOAD_FAILED");
       }
     });
 

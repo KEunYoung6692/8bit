@@ -51,8 +51,16 @@ Recommended hosting settings:
 - Output directory: `dist`
 - Node version: 22
 - Environment variables:
-  - `VITE_SUPABASE_URL`
-  - `VITE_SUPABASE_ANON_KEY`
+  - `GOOGLE_AI_API_KEY`
+  - `host`
+  - `port`
+  - `database`
+  - `user`
+  - `password`
+  - Optional: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
 
-Do not add direct database credentials such as `host`, `user`, or `password` to
-Vercel for this frontend app.
+`GOOGLE_AI_API_KEY` is used only by Vercel API routes for 8-bit avatar generation
+and resume-aware chat responses. It must not use a `VITE_` prefix.
+
+Database credentials are used only by Vercel API routes. Do not expose them with
+a `VITE_` prefix.
