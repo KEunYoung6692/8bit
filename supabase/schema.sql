@@ -1,6 +1,6 @@
 -- HACKER-TALE Supabase schema
--- Run this in Supabase SQL Editor, then add VITE_SUPABASE_URL and
--- VITE_SUPABASE_ANON_KEY to .env.
+-- Run this in Supabase SQL Editor, then add server-side DB
+-- connection values (host/port/database/user/password) to .env.
 
 create extension if not exists pgcrypto;
 
