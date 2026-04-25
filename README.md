@@ -20,6 +20,14 @@ npm install
 npm run dev
 ```
 
+## Database
+
+After adding the database password to `.env`, apply the schema with:
+
+```bash
+npm run db:push
+```
+
 ## Deploy
 
 Use the standard Vite build settings:
