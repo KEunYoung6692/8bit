@@ -43,3 +43,16 @@ Recommended hosting settings:
 - Build command: `npm run build`
 - Output directory: `dist`
 - Required environment variables: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+
+## Vercel Checklist
+
+- Framework preset: Vite
+- Build command: `npm run build`
+- Output directory: `dist`
+- Node version: 22
+- Environment variables:
+  - `VITE_SUPABASE_URL`
+  - `VITE_SUPABASE_ANON_KEY`
+
+Do not add direct database credentials such as `host`, `user`, or `password` to
+Vercel for this frontend app.
