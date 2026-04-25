@@ -8,7 +8,9 @@ export default async function handler(req, res) {
 
   const key = getGoogleKey();
   if (!key) {
-    return res.status(500).json({ error: "Missing GOOGLE_AI_API_KEY" });
+    return res.status(500).json({
+      error: "Missing AI API key. Set GOOGLE_AI_API_KEY (or GEMINI_API_KEY / GOOGLE_API_KEY) in server env."
+    });
   }
 
   const { question, profile } = req.body || {};

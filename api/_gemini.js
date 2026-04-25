@@ -1,7 +1,13 @@
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
 
 export function getGoogleKey() {
-  return process.env.GOOGLE_AI_API_KEY || process.env.GOOGLEA_AI_API;
+  return (
+    process.env.GOOGLE_AI_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    process.env.GOOGLE_API_KEY ||
+    process.env.GOOGLEA_AI_API ||
+    ""
+  ).trim();
 }
 
 export function dataUrlToInlineData(dataUrl) {
